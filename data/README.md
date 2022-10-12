@@ -29,6 +29,17 @@ optional arguments:
 The bash script is just a wrapper around the python script that makes it easy to keep
 the configuration consistent.
 
+## edit-metadata.py
+The helper script `edit-metadata.py` is there to help add repos to the db.
+You can manually append repos as shown below.
+
+```bash
+python edit-metadata.py -d <csv_path> -a <repos...>
+
+# for example
+python edit-metadata.py -d repos-gt3.csv -a ceed/mfem ceed/laghos lanl/elements
+```
+
 ## clone-repos.py
 This script will take a set of repos specified in the csv outputted by `collect-repo-metadata.py` and 
 clone them into some directory.
