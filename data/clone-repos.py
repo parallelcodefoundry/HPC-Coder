@@ -6,6 +6,8 @@
 from argparse import ArgumentParser
 from os.path import join as path_join
 from pathlib import Path
+from typing import Optional
+from os import PathLike
 
 # tpl imports
 import pandas as pd
@@ -13,8 +15,12 @@ from alive_progress import alive_it
 from git import Repo
 
 
-def clone(url, root, dirname=None):
+def clone(url: str, root: PathLike, dirname: Optional[PathLike] = None):
     ''' Clone the specified git url.
+        Args:
+            url: github url to clone
+            root: where to store cloned repos
+            dirname: subdirectory of root to clone into
     '''
     if dirname is None:
         raise NotImplementedError('\'clone\' expects a dirname.')
