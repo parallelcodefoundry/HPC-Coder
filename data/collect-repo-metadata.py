@@ -9,14 +9,21 @@ import requests
 from csv import QUOTE_NONNUMERIC
 from itertools import product
 from time import sleep
+from typing import Iterable
 
 # tpl imports
 import pandas as pd
 from alive_progress import alive_it
 
 
-def query(q, access_token):
+def query(q: str, access_token: str) -> list:
     ''' Query github API.
+        Args:
+            q: query string to give to github
+            access_token: GitHub API personal access token
+
+        Returns:
+            A list of results describing the repos' metadata
     '''
     BASE_URL = 'https://api.github.com'
     DESIRED_ENTRIES = ['name', 'full_name', 'clone_url', 'html_url', 'created_at',
@@ -53,8 +60,16 @@ def query(q, access_token):
 
 
 
-def collect(tags, languages, min_stars):
-    ''' Collect all repo meta-data that match description.
+def collect(tags: Iterable[str], languages: Iterable[str], min_stars: int):
+    ''' Collect all repo meta-data that match description. Will prompt user on 
+        command line to get GitHub API access token
+        Args:
+            tags: GitHub tags to include in search query
+            languages: languages to filter in query
+            min_stars: only include repos with this many stars or greater
+        
+        Returns:
+            A pandas DataFrame containing all the repo metadata
     '''
     api_token = getpass('GitHub API Token: ')
 

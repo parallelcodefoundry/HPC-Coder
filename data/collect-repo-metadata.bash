@@ -1,4 +1,7 @@
 #!/bin/bash
+# Helper script for calling collect-repo-metadata.py
+# author: Daniel Nichols
+# date: October 2022
 
 MIN_STARS=3
 TAGS="hpc mpi openmp proxy-application miniapp mini-app parallel-computing scientific-computing high-performance-computing computational-science"
