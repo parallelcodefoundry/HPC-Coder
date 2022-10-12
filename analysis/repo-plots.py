@@ -5,24 +5,12 @@
 # std imports
 from argparse import ArgumentParser
 from os import PathLike
+from typing import Tuple, Optional, Union
 
 # tpl imports
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
-
-
-def language_histogram(ds: pd.DataFrame, fname: PathLike):
-    ''' Plot a histogram of the languages over the repos.
-        Args:
-            ds: repo metadata dataset
-    '''
-    plt.clf()
-    sns.set()
-    hist_fig = sns.histplot(ds, x='language')
-    hist_fig.set_title('Repository Main Language Distribution')
-    fig = hist_fig.get_figure()
-    fig.savefig(fname)
 
 
 def extensions_histogram(ds: pd.DataFrame, fname: PathLike):
@@ -68,63 +56,34 @@ def loc_histogram(ds: pd.DataFrame, fname: PathLike):
     fig.savefig(fname)
 
 
-def size_histogram(ds: pd.DataFrame, fname: PathLike):
-    ''' Plot a histogram of the sizes of the repos.
+def plot_histogram(data: pd.DataFrame, column: str, fname: PathLike, nbins: Union[int,str] = 'auto', 
+    title: Optional[str] = None, xlabel: Optional[str] = None, ylabel: Optional[str] = None, 
+    log_scale: Union[int, bool, Tuple[Union[int,bool], Union[int,bool]]] = False):
+    ''' Plot a histogram of 'column' in data. Writes out the histogram to 'fname'.
         Args:
-            ds: repo metadata dataset
+            data: DataFrame to read data from
+            column: what column of 'data' to use for histogram
+            fname: where to write output file
+            nbins: number of histogram bins
+            title: title of plot
+            xlabel: xlabel of plot
+            ylabel: ylabel of plot
+            log_scale: how to log scale the axes. Either False, an integer, or tuple of integers (or mix bool/int).
     '''
     plt.clf()
     sns.set()
-    hist_fig = sns.histplot(ds, x='size', stat='count', bins=15, log_scale=(2, False))
-    hist_fig.set_title('Repository Size Distribution')
-    hist_fig.set_xlabel('Repo Size (KB)')
-    fig = hist_fig.get_figure()
-    fig.savefig(fname)
+    hist_fig = sns.histplot(data=data, x=column, bins=nbins, log_scale=log_scale)
+    if title:
+        hist_fig.set_title(title)
+    if xlabel:
+        hist_fig.set_xlabel(xlabel)
+    if ylabel:
+        hist_fig.set_ylabel(ylabel)
+    hist_fig.get_figure().savefig(fname)
 
 
-def stars_histogram(ds: pd.DataFrame, fname: PathLike):
-    ''' Plot a histogram of the stars of the repos.
-        Args:
-            ds: repo metadata dataset
-    '''
-    plt.clf()
-    sns.set()
-    hist_fig = sns.histplot(ds, x='stargazers_count', bins=15, log_scale=(2, False))
-    hist_fig.set_title('Repository Stars Distribution')
-    hist_fig.set_xlabel('# Stars')
-    fig = hist_fig.get_figure()
-    fig.savefig(fname)
-
-
-def watchers_histogram(ds: pd.DataFrame, fname: PathLike):
-    ''' Plot a histogram of the watchers of the repos.
-        Args:
-            ds: repo metadata dataset
-    '''
-    plt.clf()
-    sns.set()
-    hist_fig = sns.histplot(ds, x='watchers_count', bins=15, log_scale=(2, False))
-    hist_fig.set_title('Repository Watchers Distribution')
-    hist_fig.set_xlabel('# Watchers')
-    fig = hist_fig.get_figure()
-    fig.savefig(fname)
-
-
-def forks_histogram(ds: pd.DataFrame, fname: PathLike):
-    ''' Plot a histogram of the forks of the repos.
-        Args:
-            ds: repo metadata dataset
-    '''
-    plt.clf()
-    sns.set()
-    hist_fig = sns.histplot(ds, x='forks_count', bins=15)
-    hist_fig.set_title('Repository Forks Distribution')
-    hist_fig.set_xlabel('# Forks')
-    fig = hist_fig.get_figure()
-    fig.savefig(fname)
-
-def tags_histogram(ds: pd.DataFrame, fname: PathLike):
-    ''' Plot a histogram of the tags of the repos.
+def tags_wordcloud(ds: pd.DataFrame, fname: PathLike):
+    ''' Plot a wordcloud of the tags of the repos.
         Args:
             ds: repo metadata dataset
     '''
@@ -161,21 +120,24 @@ def main():
 
     sns.set_theme()
     if args.languages:
-        language_histogram(ds, args.languages)
+        plot_histogram(ds, 'language', args.languages, title='Repository Main Language Distribution')
+    if args.sizes:
+        plot_histogram(ds, 'size', args.sizes, title='Repository Size Distribution', xlabel='Repo Size (KB)',
+            nbins=15, log_scale=(2,False))
+    if args.stars:
+        plot_histogram(ds, 'stargazers_count', args.stars, title='Repository Stars Distribution', xlabel='# Stars',
+            nbins=15, log_scale=(2,False))
+    if args.watchers:
+        plot_histogram(ds, 'watchers_count', args.watchers, title='Repository Watchers Distribution', 
+            xlabel='# Watchers', nbins=15, log_scale=(2,False))
+    if args.forks:
+        plot_histogram(ds, 'forks_count', args.forks, title='Repository Forks Distribution', xlabel='# Forks', nbins=15)
+    if args.tags:
+        tags_wordcloud(ds, args.tags)
     if args.extensions:
         extensions_histogram(ds, args.extensions)
     if args.loc:
         loc_histogram(ds, args.loc)
-    if args.sizes:
-        size_histogram(ds, args.sizes)
-    if args.stars:
-        stars_histogram(ds, args.stars)
-    if args.watchers:
-        watchers_histogram(ds, args.watchers)
-    if args.forks:
-        forks_histogram(ds, args.forks)
-    if args.tags:
-        tags_histogram(ds, args.tags)
 
 
 
