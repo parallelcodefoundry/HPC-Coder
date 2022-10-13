@@ -26,25 +26,19 @@ def get_source_filenames(root: PathLike, extensions: Iterable[str] = C_CPP_EXTEN
         Returns:
             A list of paths to all the source files.
     '''
-    from glob import glob
-    from os.path import join as path_join, isdir, exists, islink
+    from os.path import join as path_join, isdir, exists
     from os import walk
 
     get_extension = lambda x: splitext(x)[-1][1:]
 
     def is_valid_source_file(fname: PathLike) -> bool:
-        return (not isdir(fname)) and (exists(fname)) and (get_extension(fname) in extensions)
+        return (get_extension(fname) in extensions) and (not isdir(fname)) and (exists(fname))
 
+    # I've found os.walk to be ~2x faster at this task than glob.glob
     all_files = []
     vals = alive_it(walk(root), title='Searching for source files'.rjust(26)) if show_progress else walk(root)
-    for rt, dirs, files in vals:
+    for rt, _, files in vals:
         all_files.extend( [path_join(rt, f) for f in files if is_valid_source_file(path_join(rt, f))] )
-
-    #all_files = []
-    #vals = alive_it(extensions, title='Searching for source files'.rjust(26)) if show_progress else extensions
-    #for ext in vals:
-    #    files = glob(path_join(root, '**', '*.' + ext), recursive=True)
-    #    all_files.extend( [f for f in files if is_valid_source_file(f)] )
 
     return all_files
 
