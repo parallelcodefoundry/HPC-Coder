@@ -41,8 +41,7 @@ def main():
     args = get_args()
 
     fnames = get_source_filenames(args.root)
-    fnames = filter_bad_encoding(fnames)
-    fnames = filter_duplicates(fnames)
+    fnames = filter_duplicates( filter_bad_encoding(fnames) )
     print_source_file_stats(fnames)
 
     dataset = load_dataset("text", name='HPC Source Dataset', data_files=fnames, encoding='utf-8')

@@ -6,13 +6,17 @@
 from __future__ import annotations
 from typing import Iterable
 from os import PathLike
+from os.path import splitext
 import hashlib
 
 # tpl imports
 from alive_progress import alive_it
 
 
-def get_source_filenames(root: PathLike, extensions: Iterable[str] = ['C', 'cc', 'cxx', 'cpp', 'c', 'h', 'hpp'], show_progress: bool = True) -> list[PathLike]:
+C_CPP_EXTENSIONS = ['C', 'cc', 'cxx', 'cpp', 'c', 'h', 'hh', 'hpp', 'H', 'hxx', 'Hxx', 'HXX']
+
+
+def get_source_filenames(root: PathLike, extensions: Iterable[str] = C_CPP_EXTENSIONS, show_progress: bool = True) -> list[PathLike]:
     ''' return a list of all the filenames of source files with the given extensions in root.
         Args:
             root: where to start searching for files. Is searched recursively.
@@ -24,15 +28,23 @@ def get_source_filenames(root: PathLike, extensions: Iterable[str] = ['C', 'cc',
     '''
     from glob import glob
     from os.path import join as path_join, isdir, exists, islink
+    from os import walk
+
+    get_extension = lambda x: splitext(x)[-1][1:]
 
     def is_valid_source_file(fname: PathLike) -> bool:
-        return (not isdir(fname)) and exists(fname)
-    
+        return (not isdir(fname)) and (exists(fname)) and (get_extension(fname) in extensions)
+
     all_files = []
-    vals = alive_it(extensions, title='Searching for source files'.rjust(26)) if show_progress else extensions
-    for ext in vals:
-        files = glob(path_join(root, '**', '*.' + ext), recursive=True)
-        all_files.extend( [f for f in files if is_valid_source_file(f)] )
+    vals = alive_it(walk(root), title='Searching for source files'.rjust(26)) if show_progress else walk(root)
+    for rt, dirs, files in vals:
+        all_files.extend( [path_join(rt, f) for f in files if is_valid_source_file(path_join(rt, f))] )
+
+    #all_files = []
+    #vals = alive_it(extensions, title='Searching for source files'.rjust(26)) if show_progress else extensions
+    #for ext in vals:
+    #    files = glob(path_join(root, '**', '*.' + ext), recursive=True)
+    #    all_files.extend( [f for f in files if is_valid_source_file(f)] )
 
     return all_files
 
@@ -126,7 +138,6 @@ def get_loc_per_extension(flist: Iterable[PathLike], show_progress: bool = True)
         Returns:
             The total LOC summed over all the files stored in buckets in a dict.
     '''
-    from os.path import splitext
     get_extension = lambda x: splitext(x)[-1]
 
     LOC = {}
