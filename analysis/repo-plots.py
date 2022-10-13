@@ -127,10 +127,10 @@ def main():
             nbins=15, log_scale=(2,False))
     if args.stars:
         plot_histogram(ds, 'stargazers_count', args.stars, title='Repository Stars Distribution', xlabel='# Stars',
-            nbins=15, log_scale=(2,False))
+            nbins=15, log_scale=False)
     if args.watchers:
         plot_histogram(ds, 'watchers_count', args.watchers, title='Repository Watchers Distribution', 
-            xlabel='# Watchers', nbins=15, log_scale=(2,False))
+            xlabel='# Watchers', nbins=15, log_scale=False)
     if args.forks:
         plot_histogram(ds, 'forks_count', args.forks, title='Repository Forks Distribution', xlabel='# Forks', nbins=15)
     if args.tags:
