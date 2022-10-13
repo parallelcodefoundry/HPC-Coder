@@ -34,9 +34,10 @@ def get_source_filenames(root: PathLike, extensions: Iterable[str] = C_CPP_EXTEN
     get_extension = lambda x: splitext(x)[-1][1:]
 
     def is_valid_source_file(fname: PathLike) -> bool:
-        return (get_extension(fname) in extensions) and (not isdir(fname)) and (exists(fname))
+        return (get_extension(fname) in extensions) and (not isdir(fname)) and (exists(fname)) and \
+            (all(c not in fname for c in ['[', ']']))
 
-    # I've found os.walk to be ~2x faster at this task than glob.glob
+    # I've found os.walk to be ~2-3x faster at this task than glob.glob
     all_files = []
     vals = alive_it(walk(root), title='Searching for source files'.rjust(26)) if show_progress else walk(root)
     for rt, _, files in vals:
@@ -155,7 +156,7 @@ def get_loc_per_extension(flist: Iterable[PathLike], show_progress: bool = True)
 
 def get_source_file_size(flist: Iterable[PathLike], show_progress: bool = True) -> int:
     ''' Return the data set size based on a list of fnames in bytes.
-    
+
         Args:
             flist: a list of filenames to sum the size over.
             show_progress: If true, then display a progress bar.
