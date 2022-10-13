@@ -56,10 +56,10 @@ def filter_bad_encoding(fnames: Iterable[PathLike], show_progress: bool = True) 
     vals = alive_it(fnames, title='Removing non-utf-8'.rjust(26)) if show_progress else fnames
     for f in vals:
         try:
-            for _ in open(f, 'r'):
+            for _ in open(f, 'r', encoding='utf-8'):
                 pass
             results.append(f)
-        except:
+        except UnicodeDecodeError:
             pass
     return results
 
