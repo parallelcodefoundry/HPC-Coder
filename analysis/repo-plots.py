@@ -19,9 +19,10 @@ def extensions_histogram(ds: pd.DataFrame, fname: PathLike):
             ds: repo metadata dataset
     '''
     from os.path import splitext
-    from load_dataset import get_source_filenames
+    from load_dataset import get_source_filenames, get_loc_per_extension, filter_bad_encoding, filter_duplicates 
     ROOT = '/afs/shell.umd.edu/project/bhatele-lab/user/dnicho/code-ml/data/repos'
     fnames = get_source_filenames(ROOT)
+    fnames = filter_duplicates( filter_bad_encoding(fnames) )
 
     get_extension = lambda x: splitext(x)[-1]
     extensions = list(map(get_extension, fnames))
@@ -40,9 +41,9 @@ def loc_histogram(ds: pd.DataFrame, fname: PathLike):
         Args:
             ds: repo metadata dataset
     '''
-    from load_dataset import get_source_filenames, get_loc_per_extension, filter_bad_encoding
+    from load_dataset import get_source_filenames, get_loc_per_extension, filter_bad_encoding, filter_duplicates
     ROOT = '/afs/shell.umd.edu/project/bhatele-lab/user/dnicho/code-ml/data/repos'
-    fnames = filter_bad_encoding( get_source_filenames(ROOT) )
+    fnames = filter_duplicates( filter_bad_encoding( get_source_filenames(ROOT) ) )
 
     loc = get_loc_per_extension(fnames)
 

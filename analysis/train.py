@@ -11,7 +11,7 @@ from os import PathLike
 from datasets import load_dataset
 
 # local imports
-from load_dataset import get_source_filenames, get_source_file_size, get_loc, filter_bad_encoding
+from load_dataset import get_source_filenames, get_source_file_size, get_loc, filter_bad_encoding, filter_duplicates
 
 
 def get_args():
@@ -19,6 +19,8 @@ def get_args():
     '''
     parser = ArgumentParser(description='Train a LLM on source code data')
     parser.add_argument('--root', type=str, required=True, help='root of textual source data')
+    parser.add_argument('--deduplicate', action='store_true', help='If provided, then data will be deduplicated')
+    parser.add_argument('--model', type=str, choices=['NeoX', 'GPT2'], help='What model to train')
     return parser.parse_args()
 
 
@@ -40,6 +42,7 @@ def main():
 
     fnames = get_source_filenames(args.root)
     fnames = filter_bad_encoding(fnames)
+    fnames = filter_duplicates(fnames)
     print_source_file_stats(fnames)
 
     dataset = load_dataset("text", name='HPC Source Dataset', data_files=fnames, encoding='utf-8')

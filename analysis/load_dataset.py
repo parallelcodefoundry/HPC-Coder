@@ -6,6 +6,7 @@
 from __future__ import annotations
 from typing import Iterable
 from os import PathLike
+import hashlib
 
 # tpl imports
 from alive_progress import alive_it
@@ -55,6 +56,47 @@ def filter_bad_encoding(fnames: Iterable[PathLike], show_progress: bool = True) 
         except:
             pass
     return results
+
+
+def _file_hash(fname: PathLike) -> str:
+    ''' Compute hash of contents of fname. Method body from https://stackoverflow.com/a/44873382/3769237.
+        Args:
+            fname: path to file
+        
+        Returns:
+            sha256 hash of binary contents of fname
+    '''
+    h  = hashlib.sha256()
+    b  = bytearray(128*1024)
+    mv = memoryview(b)
+    with open(fname, 'rb', buffering=0) as f:
+        for n in iter(lambda : f.readinto(mv), 0):
+            h.update(mv[:n])
+    return h.hexdigest()
+
+
+def filter_duplicates(fnames: Iterable[PathLike], show_progress: bool = True) -> list[PathLike]:
+    ''' Perform deduplication.
+        Args:
+            fnames: names of files to deduplicate
+            show_progress: If True, then display a progress bar.
+        
+        Returns:
+            fnames with the duplicates filtered out
+    '''
+
+    hashes = set()
+    unique_fnames = []
+    bar = alive_it(fnames, title='Deduplicating'.rjust(26)) if show_progress else fnames
+    for fname in bar:
+        fhash = _file_hash(fname)
+        if fhash not in hashes:
+            hashes.add( fhash )
+            unique_fnames.append( fname )
+
+    #num_duplicates = len(fnames) - len(unique_fnames)
+    #print('Removed {} duplicates.'.format(num_duplicates))
+    return unique_fnames
 
 
 def get_loc(flist: Iterable[PathLike], show_progress: bool = True) -> int:
