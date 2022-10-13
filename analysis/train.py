@@ -26,6 +26,7 @@ def get_args():
 
 def print_source_file_stats(fnames: Iterable[PathLike]):
     ''' Print meta-data about source files such as # files, LOC, and memory size.
+    
         Args:
             fnames: File names to compute statistics over
     '''

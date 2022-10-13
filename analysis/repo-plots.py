@@ -15,6 +15,7 @@ import seaborn as sns
 
 def extensions_histogram(ds: pd.DataFrame, fname: PathLike):
     ''' Plot a histogram of the extensions over the repos.
+    
         Args:
             ds: repo metadata dataset
     '''
@@ -38,6 +39,7 @@ def extensions_histogram(ds: pd.DataFrame, fname: PathLike):
 
 def loc_histogram(ds: pd.DataFrame, fname: PathLike):
     ''' Plot a histogram of the extensions over the repos.
+
         Args:
             ds: repo metadata dataset
     '''
@@ -61,6 +63,7 @@ def plot_histogram(data: pd.DataFrame, column: str, fname: PathLike, nbins: Unio
     title: Optional[str] = None, xlabel: Optional[str] = None, ylabel: Optional[str] = None, 
     log_scale: Union[int, bool, Tuple[Union[int,bool], Union[int,bool]]] = False):
     ''' Plot a histogram of 'column' in data. Writes out the histogram to 'fname'.
+
         Args:
             data: DataFrame to read data from
             column: what column of 'data' to use for histogram
@@ -85,6 +88,7 @@ def plot_histogram(data: pd.DataFrame, column: str, fname: PathLike, nbins: Unio
 
 def tags_wordcloud(ds: pd.DataFrame, fname: PathLike):
     ''' Plot a wordcloud of the tags of the repos.
+
         Args:
             ds: repo metadata dataset
     '''

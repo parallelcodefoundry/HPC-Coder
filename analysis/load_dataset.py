@@ -13,11 +13,13 @@ import hashlib
 from alive_progress import alive_it
 
 
+# C/C++ related extensions to include in dataset
 C_CPP_EXTENSIONS = ['C', 'cc', 'cxx', 'cpp', 'c', 'h', 'hh', 'hpp', 'H', 'hxx', 'Hxx', 'HXX']
 
 
 def get_source_filenames(root: PathLike, extensions: Iterable[str] = C_CPP_EXTENSIONS, show_progress: bool = True) -> list[PathLike]:
     ''' return a list of all the filenames of source files with the given extensions in root.
+
         Args:
             root: where to start searching for files. Is searched recursively.
             extensions: what extensions define the source files. C/C++ extensions by default.
@@ -45,6 +47,7 @@ def get_source_filenames(root: PathLike, extensions: Iterable[str] = C_CPP_EXTEN
 
 def filter_bad_encoding(fnames: Iterable[PathLike], show_progress: bool = True) -> list[PathLike]:
     ''' Remove files with non utf-8 encodings.
+
         Args:
             fnames: a list of filenames to filter.
             show_progress: If true, then display a progress bar.
@@ -66,6 +69,7 @@ def filter_bad_encoding(fnames: Iterable[PathLike], show_progress: bool = True) 
 
 def _file_hash(fname: PathLike) -> str:
     ''' Compute hash of contents of fname. Method body from https://stackoverflow.com/a/44873382/3769237.
+
         Args:
             fname: path to file
         
@@ -83,6 +87,7 @@ def _file_hash(fname: PathLike) -> str:
 
 def filter_duplicates(fnames: Iterable[PathLike], show_progress: bool = True) -> list[PathLike]:
     ''' Perform deduplication.
+
         Args:
             fnames: names of files to deduplicate
             show_progress: If True, then display a progress bar.
@@ -107,6 +112,7 @@ def filter_duplicates(fnames: Iterable[PathLike], show_progress: bool = True) ->
 
 def get_loc(flist: Iterable[PathLike], show_progress: bool = True) -> int:
     ''' Returns the total number of lines in all the files in flist.
+
         Args:
             flist: a list of filenames to count LOC in.
             show_progress: If true, then display a progress bar.
@@ -125,6 +131,7 @@ def get_loc(flist: Iterable[PathLike], show_progress: bool = True) -> int:
 
 def get_loc_per_extension(flist: Iterable[PathLike], show_progress: bool = True) -> int:
     ''' Returns the total number of lines in all the files in flist per extension.
+
         Args:
             flist: a list of filenames to count LOC in.
             show_progress: If true, then display a progress bar.
@@ -148,6 +155,7 @@ def get_loc_per_extension(flist: Iterable[PathLike], show_progress: bool = True)
 
 def get_source_file_size(flist: Iterable[PathLike], show_progress: bool = True) -> int:
     ''' Return the data set size based on a list of fnames in bytes.
+    
         Args:
             flist: a list of filenames to sum the size over.
             show_progress: If true, then display a progress bar.

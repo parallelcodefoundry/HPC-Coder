@@ -15,6 +15,7 @@ import pandas as pd
 
 def get_repo_info(org: str, name: str, access_key: str) -> dict:
     ''' Query GitHub API for metadata about a repo.
+
         Args:
             org: organization name
             name: repo name within organization
@@ -42,6 +43,7 @@ def get_repo_info(org: str, name: str, access_key: str) -> dict:
 
 def append(ds: pd.DataFrame, repos: Iterable[str]) -> pd.DataFrame:
     ''' Fetches metadata for the requested repos and appends them to the data set.
+    
         Args:
             ds: dataset to append to
             repos: repositories to get information about

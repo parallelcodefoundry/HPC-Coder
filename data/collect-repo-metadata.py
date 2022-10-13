@@ -18,6 +18,7 @@ from alive_progress import alive_it
 
 def query(q: str, access_token: str) -> list:
     ''' Query github API.
+    
         Args:
             q: query string to give to github
             access_token: GitHub API personal access token
@@ -62,7 +63,8 @@ def query(q: str, access_token: str) -> list:
 
 def collect(tags: Iterable[str], languages: Iterable[str], min_stars: int):
     ''' Collect all repo meta-data that match description. Will prompt user on 
-        command line to get GitHub API access token
+        command line to get GitHub API access token.
+
         Args:
             tags: GitHub tags to include in search query
             languages: languages to filter in query
