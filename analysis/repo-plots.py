@@ -6,6 +6,7 @@
 from argparse import ArgumentParser
 from os import PathLike
 from typing import Tuple, Optional, Union
+import pickle
 
 # tpl imports
 import pandas as pd
@@ -22,11 +23,14 @@ def extensions_histogram(ds: pd.DataFrame, fname: PathLike):
     from os.path import splitext
     from load_dataset import get_source_filenames, get_loc_per_extension, filter_bad_encoding, filter_duplicates 
     ROOT = '/afs/shell.umd.edu/project/bhatele-lab/user/dnicho/code-ml/data/repos'
-    fnames = get_source_filenames(ROOT)
-    fnames = filter_duplicates( filter_bad_encoding(fnames) )
+    #fnames = get_source_filenames(ROOT)
+    #fnames = filter_duplicates( filter_bad_encoding(fnames) )
+    fnames = filter_duplicates( pickle.load(open('fnames.pkl', 'rb')) )
+
+    exclude_ext = ['.cxx', '.hh', '.H', '.hxx']
 
     get_extension = lambda x: splitext(x)[-1]
-    extensions = list(map(get_extension, fnames))
+    extensions = list( filter(lambda x: x not in exclude_ext, map(get_extension, fnames)) )
 
     plt.clf()
     sns.set()
@@ -34,7 +38,7 @@ def extensions_histogram(ds: pd.DataFrame, fname: PathLike):
     hist_fig.set_title('File Type Distribution')
     hist_fig.set_xlabel('File Extension')
     fig = hist_fig.get_figure()
-    fig.savefig(fname)
+    fig.savefig(fname, bbox_inches='tight')
 
 
 def loc_histogram(ds: pd.DataFrame, fname: PathLike):
@@ -45,9 +49,15 @@ def loc_histogram(ds: pd.DataFrame, fname: PathLike):
     '''
     from load_dataset import get_source_filenames, get_loc_per_extension, filter_bad_encoding, filter_duplicates
     ROOT = '/afs/shell.umd.edu/project/bhatele-lab/user/dnicho/code-ml/data/repos'
-    fnames = filter_duplicates( filter_bad_encoding( get_source_filenames(ROOT) ) )
+    #fnames = filter_duplicates( filter_bad_encoding( get_source_filenames(ROOT) ) )
+    fnames = filter_duplicates( pickle.load(open('fnames.pkl', 'rb')) )
 
     loc = get_loc_per_extension(fnames)
+
+    exclude_ext = ['.cxx', '.hh', '.H', '.hxx']
+    for ext in exclude_ext:
+        if ext in loc:
+            del loc[ext]
 
     plt.clf()
     sns.set()
@@ -56,7 +66,7 @@ def loc_histogram(ds: pd.DataFrame, fname: PathLike):
     hist_fig.set_xlabel('File Extension')
     hist_fig.set_ylabel('LOC')
     fig = hist_fig.get_figure()
-    fig.savefig(fname)
+    fig.savefig(fname, bbox_inches='tight')
 
 
 def plot_histogram(data: pd.DataFrame, column: str, fname: PathLike, nbins: Union[int,str] = 'auto', 
