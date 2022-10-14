@@ -486,3 +486,4 @@
 "parelagmc","LLNL/parelagmc","https://github.com/LLNL/parelagmc.git","https://github.com/LLNL/parelagmc","2018-01-05T17:27:34Z","2020-12-01T19:25:50Z","C++",299,3,3,0,"['monte-carlo', 'parallel', 'parallel-computing', 'simulation']","public",0,1,3
 "DysectAPI","LLNL/DysectAPI","https://github.com/LLNL/DysectAPI.git","https://github.com/LLNL/DysectAPI","2013-10-25T16:47:38Z","2015-12-08T22:32:43Z","C++",268,3,3,1,"[]","public",1,0,3
 "op","LLNL/op","https://github.com/LLNL/op.git","https://github.com/LLNL/op","2022-02-26T01:06:14Z","2022-08-04T15:28:53Z","C++",6107,3,3,3,"[]","public",3,0,3
+"amrex","AMReX-Codes/amrex","https://github.com/AMReX-Codes/amrex.git","https://github.com/AMReX-Codes/amrex","2017-04-28T19:37:00Z","2022-10-05T17:34:25Z","C++",50162,346,346,269,"['amr', 'amrex']","public",269,97,346
