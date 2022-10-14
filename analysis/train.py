@@ -4,11 +4,14 @@
 '''
 # std imports
 from argparse import ArgumentParser
-from typing import Iterable
+from typing import Iterable, Optional
 from os import PathLike
+from os.path import isdir
+import pickle
 
 # tpl imports
-from datasets import load_dataset
+from datasets import load_dataset, DatasetDict
+from transformers import AutoTokenizer
 
 # local imports
 from load_dataset import get_source_filenames, get_source_file_size, get_loc, filter_bad_encoding, filter_duplicates
@@ -22,13 +25,14 @@ def get_args():
         'filenames list')
     parser.add_argument('--cache-fnames', type=str, help='cache the filenames to this path')
     parser.add_argument('--deduplicate', action='store_true', help='If provided, then data will be deduplicated')
-    parser.add_argument('--model', type=str, choices=['NeoX', 'GPT2'], help='What model to train')
+    parser.add_argument('--model', type=str, default='gpt2', help='what model to train')
+    parser.add_argument('--tokenizer', type=str, default='gpt2', help='what text tokenizer to use')
     return parser.parse_args()
 
 
 def print_source_file_stats(fnames: Iterable[PathLike]):
     ''' Print meta-data about source files such as # files, LOC, and memory size.
-    
+
         Args:
             fnames: File names to compute statistics over
     '''
@@ -71,13 +75,34 @@ def get_dataset(dataset_path: PathLike, deduplicate: bool = True, fnames_cache_o
         
     return load_dataset('text', name='HPC-Source-Dataset', data_files=fnames, encoding='utf-8', sample_by='document')
     
+
+def get_model(model_name: str):
+    '''
+    '''
+    pass
+
+
+def train(dataset, model):
+    ''' Train model on dataset.
+
+        Args:
+            dataset: HuggingFace text dataset
+            model: LLM
+    '''
+    pass
+
+
 def main():
     args = get_args()
 
     dataset = get_dataset(args.input, deduplicate=args.deduplicate, fnames_cache_output=args.cache_fnames)
-
-    dataset = load_dataset("text", name='HPC Source Dataset', data_files=fnames, encoding='utf-8')
-    print(dataset)
+    
+    tokenizer = AutoTokenizer.from_pretrained(args.tokenizer)
+    def tokenize_func(x):
+        return tokenizer(x["text"])
+    
+    tokenized_dataset = dataset.map(tokenize_func, batched=True)
+    print(tokenized_dataset)
 
 
 
