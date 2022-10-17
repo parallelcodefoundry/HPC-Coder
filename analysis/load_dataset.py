@@ -17,7 +17,8 @@ from alive_progress import alive_it
 C_CPP_EXTENSIONS = ['C', 'cc', 'cxx', 'cpp', 'c', 'h', 'hh', 'hpp', 'H', 'hxx', 'Hxx', 'HXX']
 
 
-def get_source_filenames(root: PathLike, extensions: Iterable[str] = C_CPP_EXTENSIONS, show_progress: bool = True) -> list[PathLike]:
+def get_source_filenames(root: PathLike, extensions: Iterable[str] = C_CPP_EXTENSIONS, show_progress: bool = True
+) -> list[PathLike]:
     ''' return a list of all the filenames of source files with the given extensions in root.
 
         Args:
@@ -66,6 +67,41 @@ def filter_bad_encoding(fnames: Iterable[PathLike], show_progress: bool = True) 
         except UnicodeDecodeError:
             pass
     return results
+
+
+def filter_by_size(fnames: Iterable[PathLike], min_mb: int = 0, max_mb: int = 1, min_tokens: int = 50, 
+    show_progress: bool = True
+) -> list[PathLike]:
+    ''' Remove files based on size of file and number of tokens.
+        Args:
+            fnames: List of filenames to filter
+            min_mb: minimum number of MB to allow
+            max_mb: maximum number of MB to allow
+            min_tokens: exclude files with less tokens (split by whitespace)
+    '''
+    from os.path import getsize
+    result = []
+    vals = alive_it(fnames, title='Filtering by size'.rjust(26)) if show_progress else fnames
+    
+    for fname in vals:
+        mb = getsize(fname) / (1024 ** 2)
+        if mb < min_mb or mb > max_mb:
+            continue
+        
+        num_tokens = 0
+        with open(fname, 'r') as fp:
+            for line in fp:
+                num_tokens += len( line.split() )
+                if num_tokens >= min_tokens:
+                    break
+        
+        if num_tokens < min_tokens:
+            continue
+
+        result.append( fname )
+    
+    return result
+
 
 
 def _file_hash(fname: PathLike) -> str:

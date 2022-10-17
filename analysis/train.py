@@ -11,10 +11,12 @@ import pickle
 
 # tpl imports
 from datasets import load_dataset, DatasetDict
+from tokenizers import Tokenizer
 from transformers import AutoTokenizer
 
 # local imports
-from load_dataset import get_source_filenames, get_source_file_size, get_loc, filter_bad_encoding, filter_duplicates
+from load_dataset import get_source_filenames, get_source_file_size, get_loc, filter_bad_encoding, filter_duplicates, \
+    filter_by_size
 
 
 def get_args():
@@ -58,6 +60,7 @@ def get_dataset(dataset_path: PathLike, deduplicate: bool = True, fnames_cache_o
         # read filenames from root
         fnames = get_source_filenames(dataset_path)
         fnames = filter_bad_encoding(fnames)
+        fnames = filter_by_size(fnames, max_mb=1, min_tokens=15)
 
         if fnames_cache_output:
             with open(fnames_cache_output, 'wb') as fp:
@@ -96,13 +99,14 @@ def main():
     args = get_args()
 
     dataset = get_dataset(args.input, deduplicate=args.deduplicate, fnames_cache_output=args.cache_fnames)
+    print(dataset)
     
-    tokenizer = AutoTokenizer.from_pretrained(args.tokenizer)
-    def tokenize_func(x):
-        return tokenizer(x["text"])
+    #tokenizer = AutoTokenizer.from_pretrained(args.tokenizer)
+    #def tokenize_func(x):
+    #    return tokenizer(x["text"])
     
-    tokenized_dataset = dataset.map(tokenize_func, batched=True)
-    print(tokenized_dataset)
+    #tokenized_dataset = dataset.map(tokenize_func, batched=True)
+    #print(tokenized_dataset)
 
 
 
