@@ -5,7 +5,7 @@
 # std imports
 from argparse import ArgumentParser
 from typing import Iterable, Optional, Union
-from os import PathLike
+from os import PathLike, environ
 from os.path import isdir
 import pickle
 
@@ -14,6 +14,7 @@ import torch
 from datasets import load_dataset, DatasetDict
 from tokenizers import Tokenizer
 from transformers import AutoTokenizer, AutoModelForCausalLM, AutoModelForMaskedLM
+import tqdm
 
 # local imports
 from load_dataset import get_source_filenames, get_source_file_size, get_loc, filter_bad_encoding, filter_duplicates, \
@@ -115,6 +116,9 @@ def main():
 
     # environment setup
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
+    environ['TOKENIZERS_PARALLELISM'] = '0'
+    #environ['OMP_NUM_THREADS'] = '4'
+    #tqdm.tqdm.monitor_interval = 0  # fixes bug where tqdm calls in HF error due to monitor threading
 
     # gather and initialize dataset
     dataset = get_dataset(args.input, deduplicate=args.deduplicate, fnames_cache_output=args.cache_fnames)
@@ -131,7 +135,7 @@ def main():
     # initialize model
     model = get_model(args.model, args.lm_task)
     model.to(device)
-    
+
     # train
     train(tokenized_dataset, model)
 
