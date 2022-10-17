@@ -21,10 +21,11 @@ def extensions_histogram(ds: pd.DataFrame, fname: PathLike):
             ds: repo metadata dataset
     '''
     from os.path import splitext
-    from load_dataset import get_source_filenames, get_loc_per_extension, filter_bad_encoding, filter_duplicates 
+    from load_dataset import get_source_filenames, get_loc_per_extension, filter_bad_encoding, filter_duplicates, \
+        filter_by_size
     ROOT = '/afs/shell.umd.edu/project/bhatele-lab/user/dnicho/code-ml/data/repos'
     #fnames = get_source_filenames(ROOT)
-    #fnames = filter_duplicates( filter_bad_encoding(fnames) )
+    #fnames = filter_duplicates( filter_by_size( filter_bad_encoding(fnames), min_tokens=15 ) )
     fnames = filter_duplicates( pickle.load(open('fnames.pkl', 'rb')) )
 
     exclude_ext = ['.cxx', '.hh', '.H', '.hxx']
@@ -47,9 +48,10 @@ def loc_histogram(ds: pd.DataFrame, fname: PathLike):
         Args:
             ds: repo metadata dataset
     '''
-    from load_dataset import get_source_filenames, get_loc_per_extension, filter_bad_encoding, filter_duplicates
+    from load_dataset import get_source_filenames, get_loc_per_extension, filter_bad_encoding, filter_duplicates, \
+        filter_by_size
     ROOT = '/afs/shell.umd.edu/project/bhatele-lab/user/dnicho/code-ml/data/repos'
-    #fnames = filter_duplicates( filter_bad_encoding( get_source_filenames(ROOT) ) )
+    #fnames = filter_duplicates( filter_by_size( filter_bad_encoding( get_source_filenames(ROOT) ), min_tokens=15 ) )
     fnames = filter_duplicates( pickle.load(open('fnames.pkl', 'rb')) )
 
     loc = get_loc_per_extension(fnames)
