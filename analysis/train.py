@@ -5,6 +5,7 @@
 # std imports
 from argparse import ArgumentParser
 from typing import Iterable, Optional, Union
+import logging
 from os import PathLike, environ
 from os.path import isdir
 import pickle
@@ -25,12 +26,15 @@ def get_args():
     ''' Parse the command line arguments and return the object with them as properties.
     '''
     parser = ArgumentParser(description='Train a LLM on source code data')
+    parser.add_argument('--log', choices=['INFO', 'DEBUG', 'WARNING', 'ERROR', 'CRITICAL'],
+        default='INFO', type=str.upper, help='logging level')
     parser.add_argument('--input', type=str, required=True, help='root of textual source data or path to pkl of ' +
         'filenames list')
+    parser.add_argument('--dataset-info', action='store_true', help='show dataset stats')
     parser.add_argument('--cache-fnames', type=str, help='cache the filenames to this path')
     parser.add_argument('--deduplicate', action='store_true', help='If provided, then data will be deduplicated')
     parser.add_argument('--model', type=str, default='gpt2', help='what model to train')
-    parser.add_argument('--lm-task', choices=['causal', 'masked'], help='LM training objective')
+    parser.add_argument('--lm-task', default='causal', choices=['causal', 'masked'], help='LM training objective')
     parser.add_argument('--tokenizer', type=str, default='gpt2', help='what text tokenizer to use')
     parser.add_argument('--max-seq-length', default=1024, help='maximum sequence length')
     return parser.parse_args()
@@ -114,17 +118,29 @@ def train(dataset, model):
 def main():
     args = get_args()
 
+    # setup logging
+    numeric_level = getattr(logging, args.log.upper(), None)
+    if not isinstance(numeric_level, int):
+        raise ValueError('Invalid log level: {}'.format(args.log))
+    logging.basicConfig(format='%(asctime)s [%(levelname)s] -- %(message)s', 
+        level=numeric_level) #filename='log.txt', filemode='w')
+
     # environment setup
+    logging.info('Setting up environment...')
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
     environ['TOKENIZERS_PARALLELISM'] = '0'
-    #environ['OMP_NUM_THREADS'] = '4'
+    #environ['OMP_NUM_THREADS'] = '32'
     #tqdm.tqdm.monitor_interval = 0  # fixes bug where tqdm calls in HF error due to monitor threading
+    logging.info('Using device: {}'.format(device))
 
     # gather and initialize dataset
-    dataset = get_dataset(args.input, deduplicate=args.deduplicate, fnames_cache_output=args.cache_fnames)
+    logging.info('Creating dataset...')
+    dataset = get_dataset(args.input, deduplicate=args.deduplicate, fnames_cache_output=args.cache_fnames,
+        print_stats=args.dataset_info)
     print(dataset)
     
     # tokenizer dataset
+    logging.info('Tokenizing dataset...')
     tokenizer = AutoTokenizer.from_pretrained(args.tokenizer)
     def tokenize_func(x):
         return tokenizer(x["text"], truncation=True, max_length=args.max_seq_length)
@@ -133,10 +149,12 @@ def main():
     print(tokenized_dataset)
 
     # initialize model
-    model = get_model(args.model, args.lm_task)
+    logging.info('Creating model...')
+    model = get_model(args.model, training_task = args.lm_task)
     model.to(device)
 
     # train
+    logging.info('Training...')
     train(tokenized_dataset, model)
 
 
