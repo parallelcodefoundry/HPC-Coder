@@ -4,15 +4,16 @@
 '''
 # std imports
 from argparse import ArgumentParser
-from typing import Iterable, Optional
+from typing import Iterable, Optional, Union
 from os import PathLike
 from os.path import isdir
 import pickle
 
 # tpl imports
+import torch
 from datasets import load_dataset, DatasetDict
 from tokenizers import Tokenizer
-from transformers import AutoTokenizer
+from transformers import AutoTokenizer, AutoModelForCausalLM, AutoModelForMaskedLM
 
 # local imports
 from load_dataset import get_source_filenames, get_source_file_size, get_loc, filter_bad_encoding, filter_duplicates, \
@@ -28,7 +29,9 @@ def get_args():
     parser.add_argument('--cache-fnames', type=str, help='cache the filenames to this path')
     parser.add_argument('--deduplicate', action='store_true', help='If provided, then data will be deduplicated')
     parser.add_argument('--model', type=str, default='gpt2', help='what model to train')
+    parser.add_argument('--lm-task', choices=['causal', 'masked'], help='LM training objective')
     parser.add_argument('--tokenizer', type=str, default='gpt2', help='what text tokenizer to use')
+    parser.add_argument('--max-seq-length', default=1024, help='maximum sequence length')
     return parser.parse_args()
 
 
@@ -79,10 +82,22 @@ def get_dataset(dataset_path: PathLike, deduplicate: bool = True, fnames_cache_o
     return load_dataset('text', name='HPC-Source-Dataset', data_files=fnames, encoding='utf-8', sample_by='document')
     
 
-def get_model(model_name: str):
+def get_model(model_name: Union[str, PathLike], training_task: str = 'causal'):
+    ''' Return the pretrained model from file or huggingface.
+
+        Args:
+            model_name: name of huggingface model or path to model
+            training_task: causal or masked
     '''
-    '''
-    pass
+    assert training_task in ['causal', 'masked']
+
+    model = None
+    if training_task == 'causual':
+        model = AutoModelForCausalLM.from_pretrained(model_name)
+    elif training_task == 'masked':
+        model = AutoModelForMaskedLM.from_pretrained(model_name)
+
+    return model
 
 
 def train(dataset, model):
@@ -98,15 +113,27 @@ def train(dataset, model):
 def main():
     args = get_args()
 
+    # environment setup
+    device = 'cuda' if torch.cuda.is_available() else 'cpu'
+
+    # gather and initialize dataset
     dataset = get_dataset(args.input, deduplicate=args.deduplicate, fnames_cache_output=args.cache_fnames)
     print(dataset)
     
-    #tokenizer = AutoTokenizer.from_pretrained(args.tokenizer)
-    #def tokenize_func(x):
-    #    return tokenizer(x["text"])
+    # tokenizer dataset
+    tokenizer = AutoTokenizer.from_pretrained(args.tokenizer)
+    def tokenize_func(x):
+        return tokenizer(x["text"], truncation=True, max_length=args.max_seq_length)
     
-    #tokenized_dataset = dataset.map(tokenize_func, batched=True)
-    #print(tokenized_dataset)
+    tokenized_dataset = dataset.map(tokenize_func, batched=True)
+    print(tokenized_dataset)
+
+    # initialize model
+    model = get_model(args.model, args.lm_task)
+    model.to(device)
+    
+    # train
+    train(tokenized_dataset, model)
 
 
 
