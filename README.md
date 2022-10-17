@@ -6,6 +6,11 @@ It is organized as follows:
 - ***data:*** scripts and utilities for collecting and preprocessing the dataset [[README]](data/README.md)
 - ***analysis:*** scripts related to analyzing dataset and training LLM [[README]](analysis/README.md)
 
+To overview of the workflow from start to finish is as follows.
+Use `data/collect-repo-metadata.py` and `data/edit-metadata.py` to create dataset of GitHub repositories, if desired,
+otherwise use the existing `repos-gt3.csv` dataset.
+Run `data/clone-repos.py` to clone the repositories to a desired location.
+`analysis/train.py` is then used to load and process dataset, then train on it.
 
 ## Notes and Misc.
 
