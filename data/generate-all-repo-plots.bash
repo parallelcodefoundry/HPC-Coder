@@ -7,7 +7,7 @@ FIGS=figs
 if [ $# -gt 1 ]; then
     DATASET_PATH="$2"
 else
-    DATASET_PATH="../data/repos-gt3.csv"
+    DATASET_PATH="repos-gt3.csv"
 fi
 
 mkdir -p $FIGS

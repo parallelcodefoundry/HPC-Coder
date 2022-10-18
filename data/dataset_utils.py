@@ -103,7 +103,6 @@ def filter_by_size(fnames: Iterable[PathLike], min_mb: int = 0, max_mb: int = 1,
     return result
 
 
-
 def _file_hash(fname: PathLike) -> str:
     ''' Compute hash of contents of fname. Method body from https://stackoverflow.com/a/44873382/3769237.
 
@@ -142,8 +141,6 @@ def filter_duplicates(fnames: Iterable[PathLike], show_progress: bool = True) ->
             hashes.add( fhash )
             unique_fnames.append( fname )
 
-    #num_duplicates = len(fnames) - len(unique_fnames)
-    #print('Removed {} duplicates.'.format(num_duplicates))
     return unique_fnames
 
 
@@ -208,3 +205,16 @@ def get_source_file_size(flist: Iterable[PathLike], show_progress: bool = True) 
         num_bytes += getsize(fname)
     return num_bytes
 
+
+def print_source_file_stats(fnames: Iterable[PathLike]):
+    ''' Print meta-data about source files such as # files, LOC, and memory size.
+
+        Args:
+            fnames: File names to compute statistics over
+    '''
+    loc = get_loc(fnames)
+    size = get_source_file_size(fnames)
+
+    print('# source files: {:,}'.format(len(fnames)))
+    print('LOC: {:,}'.format(loc))
+    print('Dataset size: {:.3g} GB'.format(size / (1<<30)))

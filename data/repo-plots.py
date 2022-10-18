@@ -6,7 +6,6 @@
 from argparse import ArgumentParser
 from os import PathLike
 from typing import Tuple, Optional, Union
-import pickle
 
 # tpl imports
 import pandas as pd
@@ -21,12 +20,11 @@ def extensions_histogram(ds: pd.DataFrame, fname: PathLike):
             ds: repo metadata dataset
     '''
     from os.path import splitext
-    from load_dataset import get_source_filenames, get_loc_per_extension, filter_bad_encoding, filter_duplicates, \
-        filter_by_size
+    from dataset_utils import get_source_filenames, filter_bad_encoding, filter_duplicates, filter_by_size
+
     ROOT = '/afs/shell.umd.edu/project/bhatele-lab/user/dnicho/code-ml/data/repos'
-    #fnames = get_source_filenames(ROOT)
-    #fnames = filter_duplicates( filter_by_size( filter_bad_encoding(fnames), min_tokens=15 ) )
-    fnames = filter_duplicates( pickle.load(open('fnames.pkl', 'rb')) )
+    fnames = get_source_filenames(ROOT)
+    fnames = filter_duplicates( filter_by_size( filter_bad_encoding(fnames), min_tokens=15 ) )
 
     exclude_ext = ['.cxx', '.hh', '.H', '.hxx']
 
@@ -48,11 +46,11 @@ def loc_histogram(ds: pd.DataFrame, fname: PathLike):
         Args:
             ds: repo metadata dataset
     '''
-    from load_dataset import get_source_filenames, get_loc_per_extension, filter_bad_encoding, filter_duplicates, \
+    from dataset_utils import get_source_filenames, get_loc_per_extension, filter_bad_encoding, filter_duplicates, \
         filter_by_size
+    
     ROOT = '/afs/shell.umd.edu/project/bhatele-lab/user/dnicho/code-ml/data/repos'
-    #fnames = filter_duplicates( filter_by_size( filter_bad_encoding( get_source_filenames(ROOT) ), min_tokens=15 ) )
-    fnames = filter_duplicates( pickle.load(open('fnames.pkl', 'rb')) )
+    fnames = filter_duplicates( filter_by_size( filter_bad_encoding( get_source_filenames(ROOT) ), min_tokens=15 ) )
 
     loc = get_loc_per_extension(fnames)
 

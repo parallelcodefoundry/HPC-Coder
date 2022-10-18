@@ -4,7 +4,8 @@
 #SBATCH -J hpc-llm-train
 
 # config params
-DATASET="/scratch/zt1/project/bhatele-lab/user/dnicho/code-ml/data/repos"
+#DATASET="scratch-fnames.pkl"
+DATASET="/scratch/zt1/project/bhatele-lab/user/dnicho/code-ml/data/dataset.jsonl"
 TOKENIZER="gpt2"
 MODEL="gpt2"
 SEQ_LENGTH="1024"
@@ -15,9 +16,8 @@ module load python/3.8.12/zen2
 source .env/bin/activate
 
 # run job
-python train.py --input $DATASET --deduplicate --dataset-info --log info \
+python train.py --input $DATASET --log info \
     --tokenizer $TOKENIZER \
     --model $MODEL \
     --lm-task $LM_TASK \
-    --max-seq-length $SEQ_LENGTH \
-    --cache-fnames scratch-fnames.pkl
+    --max-seq-length $SEQ_LENGTH 

@@ -7,8 +7,6 @@ from argparse import ArgumentParser
 from typing import Iterable, Optional, Union
 import logging
 from os import PathLike, environ
-from os.path import isdir
-import pickle
 
 # tpl imports
 import torch
@@ -16,10 +14,6 @@ from datasets import load_dataset, DatasetDict
 from tokenizers import Tokenizer
 from transformers import AutoTokenizer, AutoModelForCausalLM, AutoModelForMaskedLM
 import tqdm
-
-# local imports
-from load_dataset import get_source_filenames, get_source_file_size, get_loc, filter_bad_encoding, filter_duplicates, \
-    filter_by_size
 
 
 def get_args():
@@ -30,61 +24,22 @@ def get_args():
         default='INFO', type=str.upper, help='logging level')
     parser.add_argument('--input', type=str, required=True, help='root of textual source data or path to pkl of ' +
         'filenames list')
-    parser.add_argument('--dataset-info', action='store_true', help='show dataset stats')
-    parser.add_argument('--cache-fnames', type=str, help='cache the filenames to this path')
-    parser.add_argument('--deduplicate', action='store_true', help='If provided, then data will be deduplicated')
+    parser.add_argument('--save-tokens', type=str, help='path to store token data')
     parser.add_argument('--model', type=str, default='gpt2', help='what model to train')
     parser.add_argument('--lm-task', default='causal', choices=['causal', 'masked'], help='LM training objective')
     parser.add_argument('--tokenizer', type=str, default='gpt2', help='what text tokenizer to use')
-    parser.add_argument('--max-seq-length', default=1024, help='maximum sequence length')
+    parser.add_argument('--max-seq-length', type=int, default=1024, help='maximum sequence length')
     return parser.parse_args()
 
 
-def print_source_file_stats(fnames: Iterable[PathLike]):
-    ''' Print meta-data about source files such as # files, LOC, and memory size.
+def get_dataset(dataset_path: PathLike, name: str = 'HPC-Source-Dataset', type: str = 'json') -> DatasetDict:
+    ''' Fetch the dataset from dataset_path and return a huggingface DatasetDict object. Currently this is just
+        a light wrapper around `load_dataset`.
 
         Args:
-            fnames: File names to compute statistics over
+            dataset_path: path to dataset
     '''
-    loc = get_loc(fnames)
-    size = get_source_file_size(fnames)
-
-    print('# source files: {:,}'.format(len(fnames)))
-    print('LOC: {:,}'.format(loc))
-    print('Dataset size: {:.3g} GB'.format(size / (1<<30)))
-
-
-def get_dataset(dataset_path: PathLike, deduplicate: bool = True, fnames_cache_output: Optional[PathLike] = None,
-    print_stats: bool = True) -> DatasetDict:
-    ''' Fetch the dataset from dataset_path and return a huggingface DatasetDict object.
-
-        Args:
-            dataset_path:
-            deduplicate:
-            fnames_cache_output: fnames
-            print_stats: If true, then print summary statistics of data set.
-    '''
-    if isdir(dataset_path):
-        # read filenames from root
-        fnames = get_source_filenames(dataset_path)
-        fnames = filter_bad_encoding(fnames)
-        fnames = filter_by_size(fnames, max_mb=1, min_tokens=15)
-
-        if fnames_cache_output:
-            with open(fnames_cache_output, 'wb') as fp:
-                pickle.dump(fnames, fp)
-    else:
-        # read filenames from pickle
-        with open(dataset_path, 'rb') as fp:
-            fnames = pickle.load(fp)
-
-    if deduplicate:
-        fnames = filter_duplicates(fnames)
-    
-    if print_stats:
-        print_source_file_stats(fnames)
-        
-    return load_dataset('text', name='HPC-Source-Dataset', data_files=fnames, encoding='utf-8', sample_by='document')
+    return load_dataset(type, name=name, data_files=dataset_path)
     
 
 def get_model(model_name: Union[str, PathLike], training_task: str = 'causal'):
@@ -129,7 +84,7 @@ def main():
     logging.info('Setting up environment...')
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
     environ['TOKENIZERS_PARALLELISM'] = '0'
-    #environ['OMP_NUM_THREADS'] = '32'
+    environ['OMP_NUM_THREADS'] = '32'
     #tqdm.tqdm.monitor_interval = 0  # fixes bug where tqdm calls in HF error due to monitor threading
     logging.info('Using device: {}'.format(device))
 
@@ -143,9 +98,11 @@ def main():
     logging.info('Tokenizing dataset...')
     tokenizer = AutoTokenizer.from_pretrained(args.tokenizer)
     def tokenize_func(x):
-        return tokenizer(x["text"], truncation=True, max_length=args.max_seq_length)
+        return tokenizer(x['text'], truncation=True, max_length=args.max_seq_length)
     
     tokenized_dataset = dataset.map(tokenize_func, batched=True)
+    if args.save_tokens:
+        tokenized_dataset.save_to_disk(args.save_tokens)
     print(tokenized_dataset)
 
     # initialize model
