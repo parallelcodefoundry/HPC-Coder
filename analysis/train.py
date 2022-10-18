@@ -10,7 +10,7 @@ from os import PathLike, environ
 
 # tpl imports
 import torch
-from datasets import load_dataset, DatasetDict
+from datasets import load_dataset, DatasetDict, load_from_disk
 from tokenizers import Tokenizer
 from transformers import AutoTokenizer, AutoModelForCausalLM, AutoModelForMaskedLM
 import tqdm
@@ -25,6 +25,7 @@ def get_args():
     parser.add_argument('--input', type=str, required=True, help='root of textual source data or path to pkl of ' +
         'filenames list')
     parser.add_argument('--save-tokens', type=str, help='path to store token data')
+    parser.add_argument('--load-tokens', type=str, help='retrieve tokens rather than retokenize')
     parser.add_argument('--model', type=str, default='gpt2', help='what model to train')
     parser.add_argument('--lm-task', default='causal', choices=['causal', 'masked'], help='LM training objective')
     parser.add_argument('--tokenizer', type=str, default='gpt2', help='what text tokenizer to use')
@@ -90,20 +91,21 @@ def main():
 
     # gather and initialize dataset
     logging.info('Creating dataset...')
-    dataset = get_dataset(args.input, deduplicate=args.deduplicate, fnames_cache_output=args.cache_fnames,
-        print_stats=args.dataset_info)
+    dataset = get_dataset(args.input)
     print(dataset)
     
     # tokenizer dataset
     logging.info('Tokenizing dataset...')
-    tokenizer = AutoTokenizer.from_pretrained(args.tokenizer)
-    def tokenize_func(x):
-        return tokenizer(x['text'], truncation=True, max_length=args.max_seq_length)
-    
-    tokenized_dataset = dataset.map(tokenize_func, batched=True)
-    if args.save_tokens:
-        tokenized_dataset.save_to_disk(args.save_tokens)
-    print(tokenized_dataset)
+    if args.load_tokens:
+        tokenized_dataset = load_from_disk(args.load_tokens)
+    else:
+        tokenizer = AutoTokenizer.from_pretrained(args.tokenizer)
+        def tokenize_func(x):
+            return tokenizer(x['text'], truncation=True, max_length=args.max_seq_length)
+        
+        tokenized_dataset = dataset.map(tokenize_func, batched=True)
+        if args.save_tokens:
+            tokenized_dataset.save_to_disk(args.save_tokens)
 
     # initialize model
     logging.info('Creating model...')
