@@ -10,9 +10,12 @@ from os import PathLike, environ
 
 # tpl imports
 import torch
+from torch.utils.data import DataLoader
+from torch.optim import AdamW
 from datasets import load_dataset, DatasetDict, load_from_disk
 from tokenizers import Tokenizer
 from transformers import AutoTokenizer, AutoModelForCausalLM, AutoModelForMaskedLM
+from accelerate import Accelerator
 import tqdm
 
 
@@ -27,6 +30,7 @@ def get_args():
     parser.add_argument('--save-tokens', type=str, help='path to store token data')
     parser.add_argument('--load-tokens', type=str, help='retrieve tokens rather than retokenize')
     parser.add_argument('--model', type=str, default='gpt2', help='what model to train')
+    parser.add_argument('--gradient-checkpointing', action='store_true', help='checkpoint gradients')
     parser.add_argument('--lm-task', default='causal', choices=['causal', 'masked'], help='LM training objective')
     parser.add_argument('--tokenizer', type=str, default='gpt2', help='what text tokenizer to use')
     parser.add_argument('--max-seq-length', type=int, default=1024, help='maximum sequence length')
@@ -61,14 +65,27 @@ def get_model(model_name: Union[str, PathLike], training_task: str = 'causal'):
     return model
 
 
-def train(dataset, model):
+def train(dataset, model, batch_size=8):
     ''' Train model on dataset.
 
         Args:
             dataset: HuggingFace text dataset
             model: LLM
     '''
-    pass
+    accelerator = Accelerator()
+
+    dataset.set_format('torch')
+    train_dl = DataLoader(dataset['train'], shuffle=True, batch_size=batch_size)
+    optimizer = AdamW(model.parameters(), lr=1e-5)
+
+    train_dl, model, optimizer = accelerator.prepare(train_dl, model, optimizer)
+    
+    model.train()
+    completed_steps = 0
+    for step, batch in enumerate(dataset, start=1):
+        loss = model(batch, labels=batch, use_cache=False).loss
+        loss = loss / 1.0
+        accelerator.backward()
 
 
 def main():
@@ -110,11 +127,12 @@ def main():
     # initialize model
     logging.info('Creating model...')
     model = get_model(args.model, training_task = args.lm_task)
-    model.to(device)
+    if args.gradient_checkpointing:
+        model.gradient_checkpointing_enable()
 
     # train
     logging.info('Training...')
-    train(tokenized_dataset, model)
+    train(tokenized_dataset, model, accelerator)
 
 
 

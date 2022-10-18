@@ -5,7 +5,7 @@
 
 # config params
 DATASET="/scratch/zt1/project/bhatele-lab/user/dnicho/code-ml/data/dataset.jsonl"
-TOKENIZER="gpt2"
+TOKENIZER="./hpc-tok"
 MODEL="gpt2"
 SEQ_LENGTH="1024"
 LM_TASK="causal"
