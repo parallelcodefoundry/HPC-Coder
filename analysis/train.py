@@ -52,7 +52,7 @@ def get_model(model_name: Union[str, PathLike], training_task: str = 'causal'):
     assert training_task in ['causal', 'masked']
 
     model = None
-    if training_task == 'causual':
+    if training_task == 'causal':
         model = AutoModelForCausalLM.from_pretrained(model_name)
     elif training_task == 'masked':
         model = AutoModelForMaskedLM.from_pretrained(model_name)
