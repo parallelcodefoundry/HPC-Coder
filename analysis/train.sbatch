@@ -13,12 +13,13 @@ LM_TASK="causal"
 if [ -d "/scratch/zt1/project/bhatele-lab/user/dnicho/code-ml/data/dataset-tokens" ]; then
     TOKENS="--load-tokens /scratch/zt1/project/bhatele-lab/user/dnicho/code-ml/data/dataset-tokens"
 else
-    TOKENS="--save-tokens"
+    TOKENS="--save-tokens /scratch/zt1/project/bhatele-lab/user/dnicho/code-ml/data/dataset-tokens"
 fi
 
 # setup environment
 module load python/3.8.12/zen2
 source .env/bin/activate
+export HF_DATASETS_CACHE="/scratch/zt1/project/bhatele-lab/user/dnicho/.cache/huggingface/datasets"
 
 # run job
 python train.py --input $DATASET --log info \
