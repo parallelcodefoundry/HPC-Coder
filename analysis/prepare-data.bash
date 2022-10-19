@@ -7,5 +7,10 @@
 SRC="/afs/shell.umd.edu/project/bhatele-lab/shared/hpc-llms/data/dataset.jsonl"
 DST="/scratch/zt1/project/bhatele-lab/user/dnicho/code-ml/data/dataset.jsonl"
 
+# copy dataset
 echo "cp ${SRC} ${DST}"
 cp ${SRC} ${DST}
+
+# create huggingface cache
+echo "mkdir -p /scratch/zt1/project/bhatele-lab/user/dnicho/.cache/huggingface/datasets"
+mkdir -p /scratch/zt1/project/bhatele-lab/user/dnicho/.cache/huggingface/datasets

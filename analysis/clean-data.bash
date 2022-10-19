@@ -9,5 +9,10 @@ else
     DST="/scratch/zt1/project/bhatele-lab/user/dnicho/code-ml/data/dataset.jsonl"
 fi
 
+# remove dataset
 echo "rm $DST"
 rm $DST
+
+# remove cache
+echo "rm -r /scratch/zt1/project/bhatele-lab/user/dnicho/.cache/huggingface/datasets/*"
+rm -r /scratch/zt1/project/bhatele-lab/user/dnicho/.cache/huggingface/datasets/*
