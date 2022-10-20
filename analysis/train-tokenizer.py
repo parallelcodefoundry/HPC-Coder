@@ -33,6 +33,7 @@ def batch_iterator(batch_size=10):
 # Base tokenizer
 tokenizer = AutoTokenizer.from_pretrained(args.base_tokenizer)
 base_vocab = list(bytes_to_unicode().values())
+tokenizer.pad_token = tokenizer.eos_token
 
 # Load dataset
 dataset = load_dataset('json', data_files=args.dataset, split="train", streaming=True)
