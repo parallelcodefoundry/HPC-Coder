@@ -3,3 +3,4 @@ __pycache__
 *.png
 *.pkl
 slurm-*.out
+hpc-tok
