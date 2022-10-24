@@ -2,6 +2,10 @@
 #SBATCH -N 1
 #SBATCH -t 01:00:00
 #SBATCH -J hpc-llm-train
+#SBATCH -A bhatele-lab-aac
+
+#####STATCH -p gpu
+#####STATCH --gres=gpu:a100
 
 # config params
 DATASET="/scratch/zt1/project/bhatele-lab/user/dnicho/code-ml/data/dataset.jsonl"
@@ -22,7 +26,7 @@ source .env/bin/activate
 export HF_DATASETS_CACHE="/scratch/zt1/project/bhatele-lab/user/dnicho/.cache/huggingface/datasets"
 
 # run job
-python train.py --input $DATASET --log info \
+python train.py --input $DATASET --log debug \
     --tokenizer $TOKENIZER  \
     ${TOKENS} \
     --model $MODEL \

@@ -14,9 +14,10 @@ from torch.utils.data import DataLoader
 from torch.optim import AdamW
 from datasets import load_dataset, DatasetDict, load_from_disk
 from tokenizers import Tokenizer
-from transformers import AutoTokenizer, AutoModelForCausalLM, AutoModelForMaskedLM
+from transformers import AutoTokenizer, AutoModelForCausalLM, AutoModelForMaskedLM, get_scheduler
 from accelerate import Accelerator
 import tqdm
+from alive_progress import alive_bar
 
 
 def get_args():
@@ -65,27 +66,44 @@ def get_model(model_name: Union[str, PathLike], training_task: str = 'causal'):
     return model
 
 
-def train(dataset, model, batch_size=8):
+def train(dataset, model, batch_size=8, num_epochs=5):
     ''' Train model on dataset.
 
         Args:
             dataset: HuggingFace text dataset
             model: LLM
     '''
+    logging.debug('Creating accelerator...')
     accelerator = Accelerator()
 
+    logging.debug('Creating torch dataset...')
+    dataset = dataset.remove_columns(['text', 'filename'])
     dataset.set_format('torch')
     train_dl = DataLoader(dataset['train'], shuffle=True, batch_size=batch_size)
+
+    logging.debug('Creating optimizer...')
     optimizer = AdamW(model.parameters(), lr=1e-5)
 
+    logging.debug('Creating learning rate scheduler...')
+    total_training_steps = num_epochs * len(train_dl)
+    lr_schedule = get_scheduler(name='linear', optimizer=optimizer, num_warmup_steps=0, 
+        num_training_steps=total_training_steps)
+
+    logging.debug('Preparing training components with accelerator...')
     train_dl, model, optimizer = accelerator.prepare(train_dl, model, optimizer)
     
-    model.train()
-    completed_steps = 0
-    for step, batch in enumerate(dataset, start=1):
-        loss = model(batch, labels=batch, use_cache=False).loss
-        loss = loss / 1.0
-        accelerator.backward()
+    #model.train()
+    #completed_steps = 0
+    for epoch in range(1, num_epochs+1):
+
+        model.train()
+        with alive_bar(len(train_dl), title='Training') as bar:
+            for step, batch in enumerate(train_dl, start=1):
+                loss = model(**batch).loss
+                loss = loss / 1.0
+                accelerator.backward()
+
+                bar()
 
 
 def main():
@@ -112,27 +130,31 @@ def main():
     print(dataset)
     
     # tokenizer dataset
-    logging.info('Tokenizing dataset...')
     if args.load_tokens:
+        logging.info('Loading tokenized dataset...')
         tokenized_dataset = load_from_disk(args.load_tokens)
     else:
+        logging.info('Tokenizing dataset with \'{}\' tokenizer...'.format(args.tokenizer))
         tokenizer = AutoTokenizer.from_pretrained(args.tokenizer)
         def tokenize_func(x):
-            return tokenizer(x['text'], truncation=True, max_length=args.max_seq_length)
+            return tokenizer(x['text'], truncation=True, max_length=args.max_seq_length, padding='max_length')
         
         tokenized_dataset = dataset.map(tokenize_func, batched=True)
         if args.save_tokens:
             tokenized_dataset.save_to_disk(args.save_tokens)
+            logging.info('Saved tokenized dataset to \'{}\'.'.format(args.save_tokens))
+    print(tokenized_dataset)
 
     # initialize model
     logging.info('Creating model...')
     model = get_model(args.model, training_task = args.lm_task)
     if args.gradient_checkpointing:
         model.gradient_checkpointing_enable()
+    print(model)
 
     # train
     logging.info('Training...')
-    train(tokenized_dataset, model, accelerator)
+    train(tokenized_dataset, model)
 
 
 
