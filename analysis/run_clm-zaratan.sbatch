@@ -1,8 +1,8 @@
 #!/bin/bash
 #SBATCH -N 1
-#SBATCH -t 01:00:00
+#SBATCH -t 00:30:00
 #SBATCH -J train-causal
-#SBATCH -A bhatele-lab-aac
+#SBATCH -A bhatele-lab-cmsc
 #SBATCH -p gpu
 #SBATCH --gres=gpu:a100
 
@@ -23,13 +23,21 @@ python run_clm.py \
     --validation_split_percentage 5 \
     --cache_dir $CACHE_DIR \
     --optim adamw_hf \
-    --num_train_epochs 2 \
+    --num_train_epochs 1 \
     --fp16 \
+    --per_device_train_batch_size 16 \
+    --per_device_eval_batch_size 1 \
     --seed 42 \
-    --do_train \
     --do_eval \
+    --do_train \
+    --max_eval_samples 1000 \
     --eval_steps 1000 \
-    --use_auth_token \
-    --push_to_hub \
-    --hub_model_id $MODEL \
-    --hub_private_repo 
+    --dataloader_num_workers 1 \
+    --logging_dir ${OUTPUT_DIR}/logging \
+    --logging_steps 250 \
+    --log_level passive
+
+    #--use_auth_token \
+    #--push_to_hub \
+    #--hub_model_id $MODEL \
+    #--hub_private_repo 
