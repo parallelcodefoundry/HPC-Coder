@@ -47,6 +47,9 @@ def plot(
     ax1 = sns.lineplot(data=train_data, x=xcolumn, y=ycolumn, ax=ax1)
     ax2 = sns.lineplot(data=val_data, x=xcolumn, y=ycolumn, ax=ax2)
 
+    #ax1.set_ylim((1, None))
+    #ax2.set_ylim((1, None))
+
     ax1.set_ylabel(ycolumn.capitalize())
     ax1.set_xlabel(xlabel_prefix + xcolumn.capitalize())
     ax2.set_xlabel(xlabel_prefix + xcolumn.capitalize())
