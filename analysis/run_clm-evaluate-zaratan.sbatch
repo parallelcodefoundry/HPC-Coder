@@ -1,10 +1,10 @@
 #!/bin/bash
 #SBATCH -N 1
-#SBATCH -t 05:00:00
-#SBATCH -J train-causal
+#SBATCH -t 01:00:00
+#SBATCH -J evaluate-causal
 #SBATCH -A bhatele-lab-cmsc
 #SBATCH -p gpu
-#SBATCH --gres=gpu:a100:4
+#SBATCH --gres=gpu:a100:1
 #SBATCH --mem=131072
 
 #DATASET="/scratch/zt1/project/bhatele-lab/user/dnicho/code-ml/data/dataset.json"
@@ -13,7 +13,7 @@ MODEL="daniellnichols/gpt-neo-hpc-source"
 CACHE_DIR="/scratch/zt1/project/bhatele-lab/user/dnicho/.cache/huggingface"
 OUTPUT_DIR="/scratch/zt1/project/bhatele-lab/user/dnicho/code-ml/data/gpt-neo-hpc-ckpt"
 LOG_DIR="/scratch/zt1/project/bhatele-lab/user/dnicho/code-ml/logging"
-DSCONFIG="./ds_config_zero2.json"
+DSCONFIG="./ds_config_zero3.json"
 
 MAX_STEPS="10000"
 
@@ -25,7 +25,7 @@ export LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:${CUDA_HOME}/lib64"
 echo "device(s): $CUDA_VISIBLE_DEVICES"
 
 deepspeed run_clm.py \
-    --model_name_or_path EleutherAI/gpt-neo-2.7B \
+    --model_name_or_path ${OUTPUT_DIR}/checkpoint-3500 \
     --tokenizer_name ./hpc-tok \
     --output_dir $OUTPUT_DIR \
     --dataset_name $DATASET \
@@ -37,15 +37,7 @@ deepspeed run_clm.py \
     --per_device_eval_batch_size 1 \
     --seed 42 \
     --do_eval \
-    --do_train \
     --deepspeed $DSCONFIG \
-    --max_steps $MAX_STEPS \
-    --evaluation_strategy steps \
-    --eval_steps 500 \
-    --max_eval_samples 500 \
+    --max_eval_samples 250 \
     --logging_steps 50 \
-    --log_level passive \
-    --use_auth_token \
-    --push_to_hub \
-    --hub_model_id $MODEL \
-    --hub_private_repo 
+    --log_level passive 

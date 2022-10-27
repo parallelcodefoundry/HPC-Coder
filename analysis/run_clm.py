@@ -522,10 +522,10 @@ def main():
         else None,
     )
 
-    logger.info(f'DS Sizes: |train|={len(train_dataset)}  |eval|={len(eval_dataset)}')
-
     # Training
     if training_args.do_train:
+        logger.info(f'DS Sizes: |train|={len(train_dataset)}  |eval|={len(eval_dataset)}')
+
         checkpoint = None
         if training_args.resume_from_checkpoint is not None:
             checkpoint = training_args.resume_from_checkpoint
