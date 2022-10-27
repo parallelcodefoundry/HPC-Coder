@@ -1,4 +1,4 @@
-''' Parse the output of the training script for losses and create a plot.
+''' Parse the output of the training script for losses and output csv.
     author: Daniel Nichols
     date: October 2022
 '''
@@ -8,15 +8,12 @@ from os import PathLike
 from typing import Optional, Iterable
 from collections import deque
 from csv import QUOTE_NONNUMERIC
-from string import printable
 import json
 import math
 from os.path import join as path_join
 
 # tpl imports
 import pandas as pd
-import matplotlib.pyplot as plt
-import seaborn as sns
 
 
 def parse_output(
@@ -64,56 +61,15 @@ def parse_output(
     return pd.DataFrame( results )
 
 
-def plot(
-    data : pd.DataFrame, 
-    output_path : PathLike,
-    xcolumn : str = 'samples', 
-    ycolumn : str = 'perplexity',
-    title : Optional[str] = None
-):
-    ''' plot the training loss/perplexity curves
-
-        Args:
-            data: dataset
-            output_path: where to save file
-            xcolumn: what column to use for x axis
-            ycolumn: what column to use for y axis
-    '''
-    assert xcolumn in ['samples', 'steps']
-    assert ycolumn in ['loss', 'perplexity', 'accuracy']
-
-    plt.clf()
-    ax = sns.lineplot(data=data, x=xcolumn, y=ycolumn)
-    if title:
-        ax.set_title(title)
-    plt.savefig(output_path, bbox_inches='tight')
-
-
 def main():
-    parser = ArgumentParser(description='Plot loss and accuracy figures from training results.')
-    parser.add_argument('-i', '--input', type=str, nargs='+', required=True, help='training output file')
-    parser.add_argument('--output-root', type=str, default='figs', help='director to store figures in')
+    parser = ArgumentParser(description='Scrape loss and accuracy from training results.')
+    parser.add_argument('-i', '--input', type=str, nargs='+', required=True, help='training output files')
+    parser.add_argument('-o', '--output', type=str, required=True, help='where to write output csv')
     parser.add_argument('--samples-per-step', type=int, default=4, help='how many samples are computed per step')
     args = parser.parse_args()
 
     results = parse_output(args.input, samples_per_step=args.samples_per_step)
-
-    sns.set(font_scale=1.5)
-    plot(results, path_join(args.output_root, 'gpt-neo-train-perplexity.png'), xcolumn='samples', ycolumn='perplexity', 
-        title='GPT-Neo Training Perplexity')
-    plot(results, path_join(args.output_root, 'gpt-neo-train-loss.png'), xcolumn='samples', ycolumn='loss', 
-        title='GPT-Neo Training Loss')
-
-    results.to_csv('gpt-neo-training-results.csv', index=False, quoting=QUOTE_NONNUMERIC)
-
-    results = pd.read_csv('gpt-neo-eval-results.csv')
-    plot(results, path_join(args.output_root, 'gpt-neo-eval-perplexity.png'), xcolumn='samples', ycolumn='perplexity',
-        title='GPT-Neo Evaluation Perplexity')
-    plot(results, path_join(args.output_root, 'gpt-neo-eval-loss.png'), xcolumn='samples', ycolumn='loss',
-        title='GPT-Neo Evaluation Loss')
-    plot(results, path_join(args.output_root, 'gpt-neo-eval-accuracy.png'), xcolumn='samples', ycolumn='accuracy',
-        title='GPT-Neo Evaluation Accuracy')
-
+    results.to_csv(args.output, index=False, quoting=QUOTE_NONNUMERIC)
 
 
 if __name__ == '__main__':
