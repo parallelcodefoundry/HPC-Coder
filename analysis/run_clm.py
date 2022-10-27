@@ -279,6 +279,7 @@ def main():
             use_auth_token=True if model_args.use_auth_token else None,
         )
         if "validation" not in raw_datasets.keys():
+            logger.info(f'Creating custom validation split with {data_args.validation_split_percentage}% of data.')
             raw_datasets["validation"] = load_dataset(
                 data_args.dataset_name,
                 data_args.dataset_config_name,
@@ -520,6 +521,8 @@ def main():
         if training_args.do_eval and not is_torch_tpu_available()
         else None,
     )
+
+    logger.info(f'DS Sizes: |train|={len(train_dataset)}  |eval|={len(eval_dataset)}')
 
     # Training
     if training_args.do_train:
