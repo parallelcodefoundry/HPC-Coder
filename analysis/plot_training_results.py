@@ -36,6 +36,9 @@ def plot(
     assert xcolumn in ['samples', 'steps']
     assert ycolumn in ['loss', 'perplexity', 'accuracy']
 
+    train_data = train_data.copy(deep=True)
+    val_data = val_data.copy(deep=True)
+
     xlabel_prefix = f'{xscale}x ' if xscale else ''
     if xscale:
         train_data[xcolumn] /= xscale
@@ -49,6 +52,12 @@ def plot(
 
     #ax1.set_ylim((1, None))
     #ax2.set_ylim((1, None))
+
+    for ax, ds in zip([ax1, ax2], [train_data, val_data]):
+        xpos = (ds[xcolumn].values[0], ds[xcolumn].values[-1])
+        ypos = (ds[ycolumn].values[0], ds[ycolumn].values[-1])
+        for x, y in zip(xpos, ypos): 
+            ax.text(x, y, f'{y:.2f}')
 
     ax1.set_ylabel(ycolumn.capitalize())
     ax1.set_xlabel(xlabel_prefix + xcolumn.capitalize())
