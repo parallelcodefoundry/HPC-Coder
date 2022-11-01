@@ -36,7 +36,8 @@ base_vocab = list(bytes_to_unicode().values())
 tokenizer.pad_token = tokenizer.eos_token
 
 # Load dataset
-dataset = load_dataset('json', data_files=args.dataset, split="train", streaming=True)
+#dataset = load_dataset('json', data_files=args.dataset, split="train", streaming=True)
+dataset = load_dataset(args.dataset, split='train', streaming=True)
 iter_dataset = iter(dataset)
 
 
