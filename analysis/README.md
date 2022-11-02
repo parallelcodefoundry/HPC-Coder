@@ -1,20 +1,32 @@
 # analysis
 
-This directory contains scripts for analyzing/plotting statistics and metadata 
-about the dataset. It also contains the scripts for training LLMs on the 
-dataset.
+This directory contains scripts for training LLMs on the dataset.
 
-## repo-plots.py and generate-all-repo-plots.bash
-`repo-plots.py` is for generating figures with summary stats about the dataset.
-Run `python repo-plots.py -h` to see all of the options.
-`generate-all-repo-plots.bash` is a helper script to generate all of the 
-possible figures into the `figs/` directory.
+## run_clm scripts
+`run_clm.py` is an extension of the default huggingface script for training
+causal language models.
+We use it here to train the different models on the dataset.
+They are called by the sbatch scripts (i.e. `run_clm-zaratan.sbatch`), which 
+also take care of the environment setup.
+These are fairly specific to my Zaratan environment.
 
-## load_dataset.py
-Not meant to be run on its own. This script contains a set of functions for 
-interacting with the dataset, collecting source files, and processing them.
+## generate_text.py
+A script for using the model to generate code based on a prompt.
+Run `python generate_text.py -h` to see how to pass args.
 
-## train.py
-This is the main script for training LLMs on the dataset. It uses the 
-huggingface _transformers_ and _datasets_ libraries.
+## parse_losses.py
+If not using tensorboard or other monitoring software, then you can use 
+this to parse the training output text for loss/accuracy values.
+Simply give it a list of files to parse and where to output the training and
+validation csv files.
+Run `python parse_losses.py -h` for more options.
+
+## plot_training_data.py
+Uses the CSVs output by `parse_losses.py` to create training and validation
+loss+perplexity curves.
+By default this will save them in the `figs/` directory.
+
+## train-tokenizer.py
+Trains a tokenizer on the dataset.
+Taken from HuggingFace repo (see script for URL and how to run).
 

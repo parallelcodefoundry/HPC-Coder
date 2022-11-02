@@ -58,3 +58,22 @@ optional arguments:
                         Where to find dataset of repos
   --root ROOT           Root directory to clone into
 ```
+
+## collect-dataset.py
+Collects the contents of all the source files and outputs them as a json lines file.
+
+```
+usage: collect-dataset.py [-h] --root ROOT -o OUTPUT
+
+Create compact dataset representation
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --root ROOT           root to start searching for source files
+  -o OUTPUT, --output OUTPUT
+                        output path
+```
+
+## repo-plots.py and generate-all-repo-plots.bash
+Create info plots about the source files (i.e. file extensions count, LOC, etc...).
+The bash script is a helper to create all combinations of the plots.
