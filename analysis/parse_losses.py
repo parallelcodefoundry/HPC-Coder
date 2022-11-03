@@ -81,6 +81,9 @@ def parse_output(
                 if line.strip() != '':
                     prev_lines.append(line)
     
+    results.sort(key=lambda x: x['samples'])
+    eval_results.sort(key=lambda x: x['samples'])
+
     return pd.DataFrame( results ), pd.DataFrame( eval_results )
 
 
