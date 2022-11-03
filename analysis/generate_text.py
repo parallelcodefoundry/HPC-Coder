@@ -20,6 +20,9 @@ def main():
     parser.add_argument('--tokenizer', type=str, required=True, help='Tokenizer to use on data.')
     parser.add_argument('--min-len', type=int, default=50, help='Minimum length to generate.')
     parser.add_argument('--max-len', type=int, default=150, help='Maximum length to generate.')
+    parser.add_argument('--top-k', type=int, default=50, help='Number of samples to use in top-k sampling.')
+    parser.add_argument('--top-p', type=float, default=0.95, help='Fraction to use in nucleas sampling.')
+    parser.add_argument('--temperature', type=float, default=0.5, help='Sampling temperature.')
     parser.add_argument('--device', type=int, default=-1, help='Where to run model')
     parser.add_argument('-o', '--output', type=str, default='-', help='Output location. Omit or \'-\' for stdout.')
     args = parser.parse_args()
@@ -41,6 +44,7 @@ def main():
         prompt = input('prompt: ')
     
     # create pipeline and generate
+    #generator = pipeline('text-generation', model=args.model, tokenizer=args.tokenizer, framework='pt', device=args.device)
     generator = pipeline('text-generation', model=args.model, tokenizer=args.tokenizer, framework='pt', device=args.device)
     
     if reprompt:
@@ -50,20 +54,33 @@ def main():
                 prompt = input('prompt: ')
                 continue
 
-            prompts = [prompt] * args.num_samples
-            result = generator(prompts, do_sample=True, min_length=args.min_len, max_new_tokens=args.max_len)
+            result = generator(
+                prompt, 
+                do_sample=True, 
+                max_new_tokens=args.max_len,
+                top_k=args.top_k,
+                top_p=args.top_p,
+                num_return_sequences=args.num_samples,
+                temperature=args.temperature
+            )
             print(result)
-            print(result[0]['generated_text'])
 
             prompt = input('prompt: ')
     else:
-        prompts = [prompt] * args.num_samples
-        result = generator(prompts, do_sample=True, min_length=args.min_len, max_new_tokens=args.max_len)
+        result = generator(
+            prompt, 
+            do_sample=True, 
+            max_new_tokens=args.max_len,
+            top_k=args.top_k,
+            top_p=args.top_p,
+            num_return_sequences=args.num_samples,
+            temperature=args.temperature
+        )
     
         # output
-        response = result#[0]['generated_text']
+        response = result
         for idx, resp in enumerate(response, start=1):
-            gen_text = resp[0]['generated_text']
+            gen_text = resp['generated_text']
             if args.output is None or args.output == '-':
                 print('Sample {}: \'{}\'\n'.format(idx, gen_text))
             else:
