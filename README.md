@@ -15,9 +15,23 @@ The `analysis/run_clm-*.sbatch` scripts can then be used to train the models on 
 
 ## Notes and Misc.
 
-*Weird bug fix:*
+*Weird bug fix #1:*
 I had to change the default value of `max_workers` from 64 to 32 in the parameter list of 
 `_get_origin_metadata_locally_or_by_urls` in `datasets/data_files.py#L708`. 
 Zaratan's CPUs have 64 cores, but tqdm errors trying to start 64 threads for some reason.
 Similar to this I also generally have to `export TOKENIZERS_PARALLELISM=false` to prevent 
 huggingface from spinning up threads in forked processes.
+
+*Weird bug fix #2:*
+I had to change the following lines in `torch/distributed/distributed_c10d.py`, line 2068.
+The PolyCoder model seems to output non-contiguous logits
+and there is a current bug in PyTorch where the NCCL backend errors if passed
+non-contiguous tensors to `all_gather`. This bug is documented [here](https://github.com/pytorch/pytorch/issues/73515)
+and [here](https://github.com/pytorch/pytorch/pull/75276).
+With a future release of torch this likely won't be necessary.
+
+```python
+work = default_pg.allgather([tensor_list], [tensor])
+# to -->
+work = default_pg.allgather([[t.contiguous() for t in tensor_list]], [tensor.contiguous()])
+```
