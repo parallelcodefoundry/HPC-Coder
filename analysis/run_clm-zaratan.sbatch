@@ -1,11 +1,13 @@
 #!/bin/bash
 #SBATCH -N 1
-#SBATCH -t 04:00:00
+#SBATCH -n 8
+#SBATCH -t 02:00:00
 #SBATCH -J train-causal
 #SBATCH -A bhatele-lab-cmsc
 #SBATCH -p gpu
 #SBATCH --gres=gpu:a100:4
 #SBATCH --mem=196608
+#SBATCH --mail-type=FAIL
 
 #DATASET="daniellnichols/hpc-source"
 DATASET="hpcgroup/hpc-source"
@@ -36,14 +38,15 @@ deepspeed run_clm.py \
     --cache_dir $CACHE_DIR \
     --optim adamw_torch \
     --fp16 \
-    --per_device_train_batch_size 2 \
-    --per_device_eval_batch_size 2 \
-    --preprocessing_num_workers 1 \
+    --per_device_train_batch_size 8 \
+    --per_device_eval_batch_size 8 \
+    --preprocessing_num_workers 4 \
+    --dataloader_num_workers 8 \
     --seed 42 \
     --do_eval \
     --do_train \
     --deepspeed $DSCONFIG \
-    --max_steps $MAX_STEPS \
+    --num_train_epochs 1 \
     --save_steps 1000 \
     --save_total_limit $MAX_CHECKPOINTS \
     --evaluation_strategy steps \
