@@ -3,6 +3,7 @@
 '''
 # std imports
 from argparse import ArgumentParser
+from functools import reduce
 from os import PathLike
 from typing import Optional
 from os.path import join as path_join
@@ -19,6 +20,7 @@ def plot(
     output_path : PathLike,
     xcolumn : str = 'samples', 
     ycolumn : str = 'perplexity',
+    seriescolumn : str = 'model',
     xscale : Optional[int] = None,
     title : Optional[str] = None
 ):
@@ -30,6 +32,7 @@ def plot(
             output_path: where to save file
             xcolumn: what column to use for x axis
             ycolumn: what column to use for y axis
+            seriescolumn: how to distinguish series on line plot
             xscale: scale value for x-axis
             title: set title of figure if not None
     '''
@@ -47,21 +50,30 @@ def plot(
     plt.clf()
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(16,6), sharey=True)
 
-    ax1 = sns.lineplot(data=train_data, x=xcolumn, y=ycolumn, ax=ax1)
-    ax2 = sns.lineplot(data=val_data, x=xcolumn, y=ycolumn, ax=ax2)
+    ax1 = sns.lineplot(data=train_data, x=xcolumn, y=ycolumn, hue=seriescolumn, ax=ax1)
+    ax2 = sns.lineplot(data=val_data, x=xcolumn, y=ycolumn, hue=seriescolumn, ax=ax2)
 
     #ax1.set_ylim((1, None))
     #ax2.set_ylim((1, None))
 
     for ax, ds in zip([ax1, ax2], [train_data, val_data]):
-        xpos = (ds[xcolumn].values[0], ds[xcolumn].values[-1])
-        ypos = (ds[ycolumn].values[0], ds[ycolumn].values[-1])
-        for x, y in zip(xpos, ypos): 
-            ax.text(x, y, f'{y:.2f}')
+
+        series_names = ds[seriescolumn].unique()
+        for series_idx, series_name in enumerate(series_names):
+            series_ds = ds[ds[seriescolumn] == series_name]
+
+            xpos = (series_ds[xcolumn].values[0], series_ds[xcolumn].values[-1])
+            ypos = (series_ds[ycolumn].values[0], series_ds[ycolumn].values[-1])
+            color = sns.color_palette()[series_idx]
+            for x, y in zip(xpos, ypos): 
+                ax.text(x, y, f'{y:.2f}', color=color)
 
     ax1.set_ylabel(ycolumn.capitalize())
     ax1.set_xlabel(xlabel_prefix + xcolumn.capitalize())
+    ax1.get_legend().set_title(seriescolumn.capitalize())
+
     ax2.set_xlabel(xlabel_prefix + xcolumn.capitalize())
+    ax2.get_legend().set_title(seriescolumn.capitalize())
 
     ax1.set_title('Training')
     ax2.set_title('Validation')
@@ -74,20 +86,21 @@ def plot(
 
 def main():
     parser = ArgumentParser(description='Plot training results.')
-    parser.add_argument('-t', '--training-results', type=str, required=True, help='csv of training results')
-    parser.add_argument('-v', '--validation-results', type=str, required=True, help='csv of validation results')
+    parser.add_argument('-t', '--training-results', type=str, nargs='+', required=True, help='csv of training results')
+    parser.add_argument('-v', '--validation-results', type=str, nargs='+', required=True, 
+        help='csv of validation results')
     parser.add_argument('--output-root', type=str, default='figs', help='root of figs directory')
     args = parser.parse_args()
 
-    train_df = pd.read_csv(args.training_results)
-    val_df = pd.read_csv(args.validation_results)
+    train_df = pd.concat([pd.read_csv(fpath) for fpath in args.training_results], ignore_index=True)
+    val_df = pd.concat([pd.read_csv(fpath) for fpath in args.validation_results], ignore_index=True)
 
-    sns.set(font_scale=1.5)
-    plot(train_df, val_df, path_join(args.output_root, 'gpt-neo-perplexity.png'), ycolumn='perplexity',
-        title='GPT-Neo Perplexity', xscale=1000)
+    sns.set(font_scale=1.5, font='DejaVu Sans')
+    plot(train_df, val_df, path_join(args.output_root, 'perplexity.png'), ycolumn='perplexity', 
+        title='Perplexity During Training', xscale=1000)
 
-    plot(train_df, val_df, path_join(args.output_root, 'gpt-neo-loss.png'), ycolumn='loss',
-        title='GPT-Neo Loss', xscale=1000)
+    plot(train_df, val_df, path_join(args.output_root, 'loss.png'), ycolumn='loss', title='Loss During Training', 
+        xscale=1000)
     
 
 if __name__ == '__main__':

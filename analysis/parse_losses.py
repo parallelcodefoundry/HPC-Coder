@@ -19,7 +19,8 @@ import pandas as pd
 def parse_output(
     results_txt_files: Iterable[PathLike], 
     add_perplexity: bool = True,
-    samples_per_step: int = 2
+    samples_per_step: int = 2,
+    model_name : Optional[str] = None
 ) -> pd.DataFrame:
     ''' Parse the output of a training run.
 
@@ -27,9 +28,10 @@ def parse_output(
             results_txt_file: paths to the text outputs of training runs
             add_perplexity: calculate perplexity for result if it's not already there
             samples_per_step: how many samples per step were computed
+            model_name: include the name of the model in the dataframe
         
         Returns:
-            A list of training results in dicts
+            Two dataframes t,v  -- the first is the training results and the second eval results
     '''
     LINE_START_KEY = '{\'loss\':'
     EVAL_START_KEY = '{\'eval_loss\':'
@@ -58,6 +60,9 @@ def parse_output(
 
                     if 'samples' not in obj:
                         obj['samples'] = obj['steps'] * samples_per_step
+
+                    if model_name is not None:
+                        obj['model'] = model_name
                     
                     results.append( obj )
                 
@@ -74,6 +79,9 @@ def parse_output(
 
                     if 'samples' not in obj:
                         obj['samples'] = obj['steps'] * samples_per_step
+
+                    if model_name is not None:
+                        obj['model'] = model_name
 
                     eval_results.append( obj )
 
@@ -93,9 +101,10 @@ def main():
     parser.add_argument('-o', '--output', type=str, required=True, help='where to write output csv')
     parser.add_argument('--eval-output', type=str, required=True, help='where to write eval output csv')
     parser.add_argument('--samples-per-step', type=int, default=8, help='how many samples are computed per step')
+    parser.add_argument('--model-name', type=str, help='Name of model being trained to include in data.')
     args = parser.parse_args()
 
-    results, eval_results = parse_output(args.input, samples_per_step=args.samples_per_step)
+    results, eval_results = parse_output(args.input, samples_per_step=args.samples_per_step, model_name=args.model_name)
     results.to_csv(args.output, index=False, quoting=QUOTE_NONNUMERIC)
 
     eval_results.columns = eval_results.columns.str.removeprefix('eval_')
