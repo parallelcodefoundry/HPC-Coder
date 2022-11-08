@@ -1,0 +1,38 @@
+[
+    {
+        "name": "Single-Precision Matrix Multiply",
+        "prompt": "/*\n\tMultiply matrix A by matrix B and add into matrix C.\n\tA, B, and C are single-precision float matrices.\n\tA is MxK, B is KxN, and C is MxN in size.\n*/\nvoid matrixMultiply(float *A, float *B, float *C, int M, int N, int K) {\n"
+    },
+    {
+        "name": "Double-Precision Matrix Multiply",
+        "prompt": "/*\n\tMultiply matrix A by matrix B and add into matrix C.\n\tA, B, and C are double-precision double matrices.\n\tA is MxK, B is KxN, and C is MxN in size.\n*/\nvoid matrixMultiply(double *A, double *B, double *C, int M, int N, int K) {\n"
+    },
+    {
+        "name": "Saxpy",
+        "prompt": "/*\n\tsaxpy -- multiply scalar float a by vector x and add to y\n\tvectors x and y are length N\n*/\nvoid saxpy(float *x, float *y, float a, int N) {\n"
+    },
+    {
+        "name": "Daxpy",
+        "prompt": "/*\n\tdaxpy -- multiply scalar double a by vector x and add to y\n\tvectors x and y are length N\n*/\nvoid saxpy(double *x, double *y, double a, int N) {\n"
+    },
+    {
+        "name": "OpenMP Saxpy",
+        "prompt": "/*openmp saxpy -- multiply scalar float a by vector x and add to y\n\tvectors x and y are length N\n\tuse OpenMP to compute in parallel\n*/\nvoid saxpy(float *x, float *y, float a, int N) {\n"
+    },
+    {
+        "name": "Simple MPI Send",
+        "prompt": "/* MPI test -- Send message to rank destination using MPI and default communicator */\nvoid sendMessage(double *message, int messageLength, int destination, int tag) {\n"
+    },
+    {
+        "name": "Average",
+        "prompt": "/* Compute the average of X and return the average. X is an array of floats of size N */\nfloat average(float *X, int N) {\n"
+    },
+    {
+        "name": "Distributed Memory Average",
+        "prompt": "/* Use MPI_Reduce to compute the average of X across processors and store the result on rank 0. worldSize is the total number of ranks. Use the default communicator. */\ndouble mpiAverage(double X, int worldSize) {\n"
+    },
+    {
+        "name": "OpenMP Sum",
+        "prompt": "/* Compute the sum of the array X. X has N elements. Use OpenMP to compute the sum in parallel. Return the sum. */\nfloat sum(float *X, int N) {\n"
+    }
+]
